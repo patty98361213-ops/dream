@@ -3,82 +3,97 @@ import streamlit as st
 
 # 🚨 強制隱藏側邊欄，讓畫面 100% 滿版
 st.set_page_config(
-    page_title="murfeeli優惠計算器", 
+    page_title="murfeeli 新店開幕優惠計算器", 
     page_icon="🛍️", 
     layout="wide",
     initial_sidebar_state="collapsed" 
 )
 
 # -----------------------------
-# 🎨 注入法式奶油色系 CSS 外觀
+# 🎨 注入高對比度「濃醇奶茶色系」 CSS 外觀
 # -----------------------------
 st.markdown("""
 <style>
-    /* 全局背景與主體字體 */
+    /* 全局背景 (奶泡淺米色) 與主體字體 (黑糖深咖啡色，確保高對比) */
     .stApp {
-        background-color: #FDFBF7 !important;
-        color: #4A3E3D !important;
+        background-color: #F9F4ED !important;
+        color: #3E2A20 !important;
     }
     
-    /* 標題與副標題色調 */
+    /* 標題與副標題色調 (濃郁焦糖色) */
     h1 {
-        color: #8C7662 !important;
-        font-weight: 700 !important;
+        color: #5E3A26 !important;
+        font-weight: 800 !important;
     }
     h2, h3, h4, h5, h6 {
-        color: #A08875 !important;
+        color: #734C36 !important;
+        font-weight: 700 !important;
     }
     
     /* 頂部 Tabs 標籤頁樣式 */
     button[data-baseweb="tab"] {
-        color: #A08875 !important;
+        color: #86614B !important;
         font-weight: 600 !important;
     }
     button[data-baseweb="tab"][aria-selected="true"] {
-        color: #6E5A4B !important;
-        border-bottom-color: #C6B49F !important;
+        color: #3E2A20 !important;
+        border-bottom-color: #A67C52 !important;
+        background-color: #F1E3D3 !important; /* 讓選中的標籤更明顯 */
+        border-radius: 8px 8px 0 0 !important;
     }
     
-    /* 數值輸入框樣式 */
+    /* 數值輸入框樣式 (純白底色+深色字體，最清楚) */
     .stNumberInput input {
-        background-color: #FFFDF9 !important;
-        color: #4A3E3D !important;
-        border-color: #E6DDD3 !important;
+        background-color: #FFFFFF !important;
+        color: #2D1A10 !important;
+        border: 2px solid #DCC9B6 !important;
+        font-weight: bold !important;
     }
     
-    /* 按鈕樣式 (快速清空) */
+    /* 按鈕樣式 (快速清空 - 拿鐵色) */
     div.stButton > button {
-        background-color: #F4EFE6 !important;
-        color: #7A6555 !important;
-        border: 1px solid #DCD1C4 !important;
+        background-color: #E6D5C3 !important;
+        color: #4A2E1B !important;
+        border: 2px solid #C6B3A0 !important;
         border-radius: 20px !important;
+        font-weight: bold !important;
+        transition: all 0.3s ease;
     }
     div.stButton > button:hover {
-        background-color: #E6DDD3 !important;
-        color: #5A4A3D !important;
-        border-color: #C6B49F !important;
+        background-color: #A67C52 !important;
+        color: #FFFFFF !important;
+        border-color: #8C5E45 !important;
     }
     
-    /* 區塊容器 (Border Container) 奶油化 */
+    /* 區塊容器 (Metric 金額統計區塊) */
     div[data-testid="stMetric"] {
-        background-color: #F7F2E8 !important;
+        background-color: #F1E3D3 !important;
         padding: 15px !important;
         border-radius: 12px !important;
-        border: 1px solid #E6DDD3 !important;
+        border: 2px solid #D8C2AD !important;
+    }
+    /* 金額數字強調色 */
+    div[data-testid="stMetricValue"] {
+        color: #A62B2B !important; /* 總金額稍微帶點磚紅，吸睛且清楚 */
     }
     
-    /* 提示框 (Alerts) 柔和化 */
+    /* 提示框 (Alerts/Warnings) 柔和化但保持清晰 */
     .stAlert {
-        background-color: #F5EFE4 !important;
-        color: #6E5A4B !important;
-        border-left-color: #C6B49F !important;
+        background-color: #F2E7D9 !important;
+        color: #5E3A26 !important;
+        border-left-color: #A67C52 !important;
     }
     
-    /* 明細小字卡 */
+    /* 明細小字卡 (外框包裝) */
     div[data-testid="stVerticalBlockBorderWrapper"] {
-        background-color: #FFFDF9 !important;
-        border: 1px solid #EAE3D5 !important;
+        background-color: #FFFBF5 !important;
+        border: 2px solid #DCC9B6 !important;
         border-radius: 12px !important;
+    }
+    
+    /* 一般 markdown 文字的粗體強調色 */
+    strong {
+        color: #4A2E1B !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -92,7 +107,7 @@ from collections import Counter
 # -----------------------------
 PRICES = {
     "潔顏露": 480, "前導水": 580, "富勒烯": 1080, "滲透精華": 1080, 
-    "保濕修復霜": 1080, "體香噴霧": 680, "隔離": 780,
+    "保濕修復霜": 1080, "體香噴霧": 680, "隔離": 780, "潔顏露五入": 120, "隔離體驗包三入": 180, "滲透體驗包三入": 200,
     "法棍包": 2680, "小方包": 2680, "巧克包": 2180, "馬鞍包": 2280, "泡芙包(小)": 1290, 
     "泡芙包(小藍)": 1390, "泡芙包(大)": 1490, "泡芙包(大藍)": 1590, 
     "泡芙肩背包": 1880, "束口後背包": 1880, "經典後背包": 1280, 
@@ -106,6 +121,7 @@ BIG_SETS = {
     ("隔離", "潔顏露", "前導水", "富勒烯", "保濕修復霜"): 3560,
     ("隔離", "潔顏露", "前導水", "富勒烯"): 2599,
     ("潔顏露", "前導水", "滲透精華", "保濕修復霜"): 2880,
+    ("小方包", "潔顏露", "隔離"): 3520,  # 🌟 修正後的套組置於此
 }
 
 COMBOS = {
@@ -130,12 +146,12 @@ PACKAGE_TWO_ITEM_DISCOUNTS = [
     (["長夾", "掀蓋零錢夾", "中夾", "短夾", "零錢夾"], ["法棍包"], 0.95),
     (["束口後背包", "經典後背包"], None, 0.95),  
     (["束口後背包"], ["潔顏露"], 0.9),
-    (["經典後背包"], ["潔顏露"], 1680),           
+    (["經典後背包"], ["潔顏露"], 1680),
     (["中夾", "短夾", "零錢夾"], None, 0.95),       
     (["中夾", "短夾", "零錢夾"], ["潔顏露", "體香噴霧", "隔離"], 0.9),
-    (["長夾", "掀蓋零錢夾"], None, 0.95),           
+    (["長夾", "掀蓋零錢夾"], None, 0.95),            
     (["長夾", "掀蓋零錢夾"], ["潔顏露", "體香噴霧", "隔離"], 0.95),      
-    (["巧克包"], None, 0.95),                       
+    (["巧克包"], None, 0.95),                        
     (["泡芙包(小)", "泡芙包(小藍)", "泡芙包(大)", "泡芙包(大藍)"], None, 0.95), 
     (["泡芙包(小)", "泡芙包(小藍)", "泡芙包(大)", "泡芙包(大藍)", "泡芙肩背包"], ["潔顏露"], 0.9), 
     (["中夾", "短夾", "零錢夾"], ["巧克包", "泡芙包(小)", "泡芙包(小藍)", "泡芙包(大)", "泡芙包(大藍)"], 0.95) 
@@ -148,7 +164,7 @@ def calc_original(cart):
     return sum(PRICES[p] * qty for p, qty in cart.items())
 
 @lru_cache(maxsize=None)
-def apply_combos(cart_tuple):
+def apply_combos(cart_tuple, used_cross_discount=False):
     cart = {}
     for item in cart_tuple:
         parts = item.split(":")
@@ -164,25 +180,18 @@ def apply_combos(cart_tuple):
     best_plan = []
     if best_price > 0:
         best_plan = [(f"{p} × {q} (原價)", PRICES[p] * q) for p, q in cart.items() if q > 0]
+        
+    def make_tuple(t_cart):
+        return tuple(sorted(f"{tk}:{tv}" for tk, tv in t_cart.items() if tv > 0))
     
     # 1. 檢查大套組優惠
     for s, price in BIG_SETS.items():
         set_counts = Counter(s)
-        can_apply = True
-        for k, v in set_counts.items():
-            if cart.get(k, 0) < v:
-                can_apply = False
-                break
-        if can_apply:
+        if all(cart.get(k, 0) >= v for k, v in set_counts.items()):
             temp = cart.copy()
             for i in s: 
                 temp[i] -= 1
-            
-            temp_list = []
-            for tk, tv in temp.items():
-                temp_list.append(f"{tk}:{tv}")
-            new_price, plan = apply_combos(tuple(temp_list))
-            
+            new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
             total = price + new_price
             if total < best_price:
                 best_price = total
@@ -191,21 +200,11 @@ def apply_combos(cart_tuple):
     # 2. 檢查固定組合優惠
     for c, (_, disc) in COMBOS_SORTED:
         combo_counts = Counter(c)
-        can_apply = True
-        for k, v in combo_counts.items():
-            if cart.get(k, 0) < v:
-                can_apply = False
-                break
-        if can_apply:
+        if all(cart.get(k, 0) >= v for k, v in combo_counts.items()):
             temp = cart.copy()
             for i in c: 
                 temp[i] -= 1
-                
-            temp_list = []
-            for tk, tv in temp.items():
-                temp_list.append(f"{tk}:{tv}")
-            new_price, plan = apply_combos(tuple(temp_list))
-            
+            new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
             total = disc + new_price
             if total < best_price:
                 best_price = total
@@ -216,20 +215,14 @@ def apply_combos(cart_tuple):
         if p in COSMETIC_ITEMS: 
             cosmetics += [p] * q
 
-    baguette = list(cosmetics)
-    if "法棍包" in cart: 
-        baguette += ["法棍包"] * cart["法棍包"]
-
+    # 🛑 已依要求將法棍包移出此處的任選混搭池
     puff = list(cosmetics)
-    if "泡芙肩背包" in cart: 
-        puff += ["泡芙肩背包"] * cart["泡芙肩背包"]
+    if "泡芙肩背包" in cart: puff += ["泡芙肩背包"] * cart["泡芙肩背包"]
 
     # 3. 任三件 9 折
-    for items in [cosmetics, baguette, puff]:
+    for items in [cosmetics, puff]:
         if len(items) >= 3:
             for group in set(combinations(items, 3)):
-                if "法棍包" in group and "泡芙肩背包" in group: 
-                    continue
                 temp = cart.copy()
                 valid = True
                 for g in group:
@@ -237,30 +230,19 @@ def apply_combos(cart_tuple):
                         valid = False
                         break
                     temp[g] -= 1
-                if not valid: 
-                    continue
+                if not valid: continue
 
-                group_sum = 0
-                for g in group:
-                    group_sum += PRICES[g]
-                price = int(round(group_sum * 0.9))
-                
-                temp_list = []
-                for tk, tv in temp.items():
-                    temp_list.append(f"{tk}:{tv}")
-                new_price, plan = apply_combos(tuple(temp_list))
-                
+                price = int(round(sum(PRICES[g] for g in group) * 0.9))
+                new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
                 total = price + new_price
                 if total < best_price:
                     best_price = total
                     best_plan = [(f"{'+'.join(group)} 任三件9折", price)] + plan
 
     # 4. 任兩件 95 折
-    for items in [cosmetics, baguette, puff]:
+    for items in [cosmetics, puff]:
         if len(items) >= 2:
             for group in set(combinations(items, 2)):
-                if "法棍包" in group and "泡芙肩背包" in group: 
-                    continue
                 temp = cart.copy()
                 valid = True
                 for g in group:
@@ -268,19 +250,10 @@ def apply_combos(cart_tuple):
                         valid = False
                         break
                     temp[g] -= 1
-                if not valid: 
-                    continue
+                if not valid: continue
 
-                group_sum = 0
-                for g in group:
-                    group_sum += PRICES[g]
-                price = int(round(group_sum * 0.95))
-                
-                temp_list = []
-                for tk, tv in temp.items():
-                    temp_list.append(f"{tk}:{tv}")
-                new_price, plan = apply_combos(tuple(temp_list))
-                
+                price = int(round(sum(PRICES[g] for g in group) * 0.95))
+                new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
                 total = price + new_price
                 if total < best_price:
                     best_price = total
@@ -290,87 +263,57 @@ def apply_combos(cart_tuple):
     for must_items, optional_items, rate in PACKAGE_TWO_ITEM_DISCOUNTS:
         if optional_items is None:
             eligible = []
-            for item in must_items: 
-                eligible += [item] * cart.get(item, 0)
+            for item in must_items: eligible += [item] * cart.get(item, 0)
             if len(eligible) >= 2:
                 for group in set(combinations(eligible, 2)):
                     temp = cart.copy()
-                    for g in group: 
-                        temp[g] -= 1
+                    for g in group: temp[g] -= 1
                     
-                    if rate > 1:
-                        price = rate
-                    else:
-                        group_sum = 0
-                        for g in group:
-                            group_sum += PRICES[g]
-                        price = int(round(group_sum * rate))
+                    price = rate if rate > 1 else int(round(sum(PRICES[g] for g in group) * rate))
+                    label_desc = f"組合價${rate}" if rate > 1 else f"任兩件{int(rate*100)}折"
                         
-                    if rate > 1:
-                        label_desc = f"組合價${rate}"
-                    else:
-                        label_desc = f"任兩件{int(rate*100)}折"
-                        
-                    temp_list = []
-                    for tk, tv in temp.items():
-                        temp_list.append(f"{tk}:{tv}")
-                    new_price, plan = apply_combos(tuple(temp_list))
-                    
+                    new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
                     total = price + new_price
                     if total < best_price:
                         best_price = total
                         best_plan = [(f"{'+'.join(group)} {label_desc}", price)] + plan
         else:
             must_eligible = []
-            for item in must_items: 
-                must_eligible += [item] * cart.get(item, 0)
+            for item in must_items: must_eligible += [item] * cart.get(item, 0)
             optional_eligible = []
-            for item in optional_items: 
-                optional_eligible += [item] * cart.get(item, 0)
+            for item in optional_items: optional_eligible += [item] * cart.get(item, 0)
             
             if must_eligible and optional_eligible:
                 processed_pairs = set()
                 for g1 in must_eligible:
                     for g2 in optional_eligible:
-                        if g1 == g2 and must_eligible.count(g1) <= 1: 
-                            continue
+                        if g1 == g2 and must_eligible.count(g1) <= 1: continue
                         pair = tuple(sorted([g1, g2]))
-                        if pair in processed_pairs: 
-                            continue
+                        if pair in processed_pairs: continue
                         processed_pairs.add(pair)
                         
                         temp = cart.copy()
                         temp[g1] -= 1
                         temp[g2] -= 1
                         
-                        if rate > 1:
-                            price = rate
-                        else:
-                            price = int(round((PRICES[g1] + PRICES[g2]) * rate))
+                        price = rate if rate > 1 else int(round((PRICES[g1] + PRICES[g2]) * rate))
+                        label_desc = f"組合價${rate}" if rate > 1 else f"{int(rate*100)}折"
                             
-                        if rate > 1:
-                            label_desc = f"組合價${rate}"
-                        else:
-                            label_desc = f"{int(rate*100)}折"
-                            
-                        temp_list = []
-                        for tk, tv in temp.items():
-                            temp_list.append(f"{tk}:{tv}")
-                        new_price, plan = apply_combos(tuple(temp_list))
-                        
+                        new_price, plan = apply_combos(make_tuple(temp), used_cross_discount)
                         total = price + new_price
                         if total < best_price:
                             best_price = total
                             best_plan = [(f"{g1}+{g2} {label_desc}", price)] + plan
-                                
+
     return best_price, best_plan
 
 # -----------------------------
 # UI 介面展示
 # -----------------------------
 def main():
-    st.markdown("<h1 style='text-align: center; color: #8C7662;'>🛍️ Murfeeli夢時代周年慶計算器</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #A08875;'>限定30組肩背包+潔顏露9折</p>", unsafe_allow_html=True)
+    # 🌟 修改了 HTML 標籤內的內聯樣式 (Inline Style)，換成較深的對比色
+    st.markdown("<h1 style='text-align: center; color: #5E3A26;'>🛍️ murfeeli 夢時代周年慶優惠計算器</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #734C36; font-size: 18px; font-weight: bold;'>✨ 肩背包+潔顏9折限定30組!</p>", unsafe_allow_html=True)
     st.write("")
 
     for p in PRICES: 
@@ -392,7 +335,8 @@ def main():
             with cols[idx % 3]:
                 with st.container(border=True):
                     st.markdown(f"**{p}**")
-                    st.markdown(f"<span style='color: #8C7662;'>單價: NT${PRICES[p]:,}</span>", unsafe_allow_html=True)
+                    # 🌟 單價文字顏色加深
+                    st.markdown(f"<span style='color: #8C5E45; font-weight: bold;'>單價: NT${PRICES[p]:,}</span>", unsafe_allow_html=True)
                     st.number_input("數量", min_value=0, step=1, key=f"qty_{p}", label_visibility="collapsed")
 
     with tab_bag:
@@ -402,7 +346,8 @@ def main():
             with cols[idx % 3]:
                 with st.container(border=True):
                     st.markdown(f"**{p}**")
-                    st.markdown(f"<span style='color: #8C7662;'>單價: NT${PRICES[p]:,}</span>", unsafe_allow_html=True)
+                    # 🌟 單價文字顏色加深
+                    st.markdown(f"<span style='color: #8C5E45; font-weight: bold;'>單價: NT${PRICES[p]:,}</span>", unsafe_allow_html=True)
                     st.number_input("數量", min_value=0, step=1, key=f"qty_{p}", label_visibility="collapsed")
 
     with tab_checkout:
@@ -422,7 +367,8 @@ def main():
             cart_list = []
             for k, v in cart.items():
                 cart_list.append(f"{k}:{v}")
-            best, plan = apply_combos(tuple(cart_list))
+                
+            best, plan = apply_combos(tuple(sorted(cart_list)), False)
             
             res_col1, res_col2, res_col3 = st.columns(3)
             with res_col1:
