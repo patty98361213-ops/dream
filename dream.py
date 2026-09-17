@@ -201,7 +201,7 @@ def render_item_grid(title, item_list):
 
 def main():
     st.markdown("<h1 style='text-align: center; color: #8C7662;'>🛍️ 夢時代優惠計算器</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #A08875;'>肩背包+潔顏露9折限30組</p>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; color: #A08875;'>9/11-9/20、9/24-10/8肩背包+潔顏露9折限30組</p>", unsafe_allow_html=True)
     st.write("")
 
     for p in PRICES: 
